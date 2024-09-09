@@ -1,0 +1,4 @@
+# ignore content in this folder,
+# but export it.
+*
+!.gitignore
