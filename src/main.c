@@ -16,17 +16,12 @@
 #define WINDOW_HEIGHT 600
 #define SCREEN_AREA WINDOW_WIDTH * WINDOW_HEIGHT
 
+/* TIME */
+#define CLOCK_TICK 60
+
 /* ----------
 * "OBJECTS"
 *///---------
-/*  Player */
-/*typedef struct SDL_Rect {
-	int x, y;
-	int w, h;
-	int dirX, dirY;
-	int speed;
-} SDL_Rect;*/
-
 typedef struct Direction {
 	int x, y;
 } Direction;
@@ -77,28 +72,45 @@ int main(int argc, char *argv[])
 
 	/* "OBJECTS" */
 	// SDL struct
+	// player
 	SDL_Rect player;
-	player.w = 30, player.h = 30;
-	player.x = 150, player.y = 150;
+	player.w = 32, player.h = 32;
+	player.x = 0, player.y = 0;
+	unsigned int walk_delay = 0;
+	unsigned int speed = 30;
 
+	// food
 	SDL_Rect food;
-	food.w = 28, food.h = 28;
-	void spawnNewFood()
-	{
-		food.x = rand() % WINDOW_WIDTH - food.w; 
-		food.y = rand() % WINDOW_HEIGHT - food.h;
-	}
-	
-	spawnNewFood();
+	food.w = 32, food.h = 32;
+	unsigned int food_blink = 0;
+	unsigned int blink_speed = 60;
 	
 	// my struct
 	Direction dir;
-	dir.x = 0, dir.y = 1;
+	dir.x = 0, dir.y = 0;
 	
 	// non-struct
-	float player_speed = 1.5;
 	int player_score = 0;
-	//int *ptr_p_score = &player_score;
+	int base_score = 0;
+	
+	/* -----------
+	* FUNCTIONS
+	*///----------
+	/* SCREEN */
+	void clear_screen()
+	{
+		SDL_SetRenderDrawColor(rend, 0,0,0,255);  // r, g, b, alpha
+		SDL_RenderClear(rend);  // clear screen to selected color
+	}
+	
+	void spawnNewFood()
+	{
+		// rand() -- range syntax -- % (max + 1 - min) + min;
+		food.x = rand() % 20*32;
+		food.y = rand() % 15*32;
+	}
+	
+	spawnNewFood();
 	
 	/* -------------
 	* MAIN LOOP
@@ -156,12 +168,30 @@ int main(int argc, char *argv[])
 		/* DRAWING ON SCREEN */
 		{
 			// Background
-			SDL_SetRenderDrawColor(rend, 0,0,0,255);  // r, g, b, alpha
-			SDL_RenderClear(rend);  // clear screen to selected color
+			clear_screen();
 
 			// FOOD
-			SDL_SetRenderDrawColor(rend, 0,255,0,255);
-			SDL_RenderFillRect(rend, &food);
+			//.draw
+			{
+				food_blink += 1;
+				
+				if (food_blink > 30 && food_blink < blink_speed){
+					SDL_SetRenderDrawColor(rend, 0,255,0,255);
+					SDL_RenderFillRect(rend, &food);
+				} /*else if (food_blink > 45 && food_blink < 60)
+				{
+					SDL_SetRenderDrawColor(rend, 0,255,0,255);
+					SDL_RenderFillRect(rend, &food);
+				}*/
+				else if (food_blink >= blink_speed) {
+					food_blink = 0;
+				}
+			}
+			
+			//SDL_SetRenderDrawColor(rend, 0,255,0,255);
+			//SDL_RenderFillRect(rend, &food);
+			
+			//.get collision
 			if (player.x == food.x && player.y == food.y)
 			{
 				spawnNewFood();
@@ -172,53 +202,79 @@ int main(int argc, char *argv[])
 			// Player
 			SDL_SetRenderDrawColor(rend, 255,0,0,255);
 			SDL_RenderDrawRect(rend, &player);
-			if (dir.x != 0)
+			
+			walk_delay += 1;
+			if (walk_delay >= 0 && walk_delay <= 1)
 			{
-				//printf("dir.x is != 0.\n");
-				switch(dir.x)
+				if (dir.x != 0)
 				{
-					case 1:
-						//printf("dir.x is 1\n");
-						player.x += player_speed;
-						break;
-					case -1:
-						//printf("dir.x is -1\n");
-						player.x -= player_speed;
-						break;
-					default:
-						break; 
+					//printf("dir.x is != 0.\n");
+					switch(dir.x)
+					{
+						case 1:
+							//printf("dir.x is 1\n");
+							player.x += player.w;
+							break;
+						case -1:
+							//printf("dir.x is -1\n");
+							player.x -= player.w;
+							break;
+						default:
+							break; 
+					}
 				}
-			}
-			if (dir.y != 0)
+				if (dir.y != 0)
+				{
+					//printf("dir.y is != 0.\n");
+					switch(dir.y)
+					{
+						case 1:
+							//printf("dir.y is 1\n");
+							player.y += player.w;
+							break;
+						case -1:
+							//printf("dir.y is -1\n");
+							player.y -= player.w;
+							break;
+						default:
+							break;
+					}
+				}
+			} else if (walk_delay == speed)
 			{
-				//printf("dir.y is != 0.\n");
-				switch(dir.y)
-				{
-					case 1:
-						//printf("dir.y is 1\n");
-						player.y += player_speed;
-						break;
-					case -1:
-						//printf("dir.y is -1\n");
-						player.y -= player_speed;
-						break;
-					default:
-						break;
-				}
+				walk_delay = 0;
 			}
 
-			
-			/*if (player_score > *ptr_p_score)
+			// check win
+			if (player_score == 50)
 			{
-				player_speed += 1;
-				*ptr_p_score = player_score;
-			}*/
+				running = false;
+				printf("\nYou win!\n\n");
+			}
+			
+			// increase player speed if add player_score;
+			if (base_score < player_score)
+			{
+				base_score += 1;
+				if (speed < 5)
+				{
+					speed -= 2;
+				} else if (speed > 5 && speed != 1)
+				{
+					speed -= 1;
+					if (blink_speed >= 24)
+					{
+						blink_speed -= 1;
+					}
+				}
+			}
 
 			// UI
 
 
 			// SCREEN UPDATE()
 			SDL_RenderPresent(rend);  // display the configured *render
+			SDL_Delay(1000/CLOCK_TICK);  // set target fps to 60;
 		}
 	}
 	
