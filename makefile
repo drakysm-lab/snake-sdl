@@ -3,8 +3,8 @@
 # -----------------------
 CC := gcc
 # gcc flags + include 
-CFLAGS := -Wall -I./src/SDL2/include
-# linker flags
+CFLAGS := -Wall -O3
+# linker flags (default for windows)
 LDFLAGS := -L./src/SDL2/lib
 
 # show/hide output
@@ -33,12 +33,15 @@ endif
 # -------------------------------------------
 ifeq ($(PLATFORM),win32)
 	# Windows static lib and bin format
+	CFLAGS += -I./src/SDL2/include
 	LDFLAGS += -lmingw32 -lSDL2main -lSDL2
 	BIN_FMT := .exe
 else
 	ifeq ($(PLATFORM),linux)
 		# Linux static lib and bin format
-		LDFLAGS += -lSDL2main -lSDL2
+		CFLAGS += -D_REENTRANT $(shell pkg-config --cflags sdl2)
+		# reassign LDFLAGS
+		LDFLAGS := $(shell pkg-config --libs sdl2)
 	endif
 endif
 
