@@ -93,6 +93,9 @@ int main(int argc, char *argv[])
 	int player_score = 0;
 	int base_score = 0;
 	
+	unsigned int timer = 150;
+	unsigned int slapsed_time = 0;
+	
 	/* -----------
 	* FUNCTIONS
 	*///----------
@@ -108,6 +111,17 @@ int main(int argc, char *argv[])
 		// rand() -- range syntax -- % (max + 1 - min) + min;
 		food.x = rand() % 20*32;
 		food.y = rand() % 15*32;
+	}
+	
+	void runTimer()
+	{
+		slapsed_time += 1;
+		if (slapsed_time == 60)
+		{
+			timer -= 1;
+			slapsed_time = 0;
+			printf("countdown: %d\n", timer);
+		}
 	}
 	
 	spawnNewFood();
@@ -245,13 +259,6 @@ int main(int argc, char *argv[])
 				walk_delay = 0;
 			}
 
-			// check win
-			if (player_score == 50)
-			{
-				running = false;
-				printf("\nYou win!\n\n");
-			}
-			
 			// increase player speed if add player_score;
 			if (base_score < player_score)
 			{
@@ -270,7 +277,18 @@ int main(int argc, char *argv[])
 			}
 
 			// UI
-
+			runTimer();
+			
+			// check win
+			if (player_score == 50)
+			{
+				running = false;
+				printf("\nYou win!\n\n");
+			} else if (timer == 0)
+			{
+				running = false;
+				printf("\nSorry, you loose! :(\n\n");
+			}
 
 			// SCREEN UPDATE()
 			SDL_RenderPresent(rend);  // display the configured *render
@@ -281,7 +299,7 @@ int main(int argc, char *argv[])
 	/*-----
 	* END
 	*///---
-	printf("SDL was initialized successfully!\n");
+	printf("The program did exit successfully!\n");
 	SDL_Quit();
 	return 0;
 }
