@@ -14,26 +14,24 @@
 #define WINDOW_TITLE "Snake!"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define SCREEN_AREA WINDOW_WIDTH * WINDOW_HEIGHT
-
-/* TIME */
+/* TIME/FRAMERATE */
 #define CLOCK_TICK 60
 
-/* ----------
+/* ---------
 * "OBJECTS"
-*///---------
+*///--------
 typedef struct Direction {
 	int x, y;
 } Direction;
 
-/* ---------------
+/* -------------
 * MAIN FUNCTION
-*///--------------
+*///------------
 int main(int argc, char *argv[])
 {
-	/*-------------------
-	* INITIALIZATION
-	*///-----------------
+	/*-----------
+	* INITIALIZE
+	*///---------
 	/* VIDEO */
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
@@ -56,8 +54,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* RENDERER */
-	// SDL_CreateRenderer (SDL_Window * window, int index -
-	// initialization priority, Unit32 flags - 0 || one or more SDL_RenderFlags)
+	// SDL_CreateRenderer (SDL_Window * window, int index - initialization 
+	// priority, Unit32 flags - 0 || one or more SDL_RenderFlags)
 	SDL_Renderer *rend = SDL_CreateRenderer(main_window, -1, 
 				SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!rend)
@@ -66,112 +64,107 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	/* RNG MODULE (stdlib.h) */
-	srand(time(NULL));  // gen a random seed for rand() - uses <time.h>
-	//int rng_ = rand();
+	/* RNG MODULE -> <stdlib.h> */
+	srand(time(NULL));  // generate a random seed for rand() -> <time.h>
 
 	/* "OBJECTS" */
-	// SDL struct
-	// player
+	// player //
 	SDL_Rect player;
 	player.w = 32, player.h = 32;
 	player.x = 0, player.y = 0;
-	unsigned int walk_delay = 0;
-	unsigned int speed = 30;
+	unsigned short walk_delay = 0;
+	unsigned short speed = CLOCK_TICK/2;
 
-	// food
+	// food //
 	SDL_Rect food;
 	food.w = 32, food.h = 32;
-	unsigned int food_blink = 0;
-	unsigned int blink_speed = 60;
+	unsigned short food_blink = 0;
+	unsigned short blink_speed = CLOCK_TICK;
 	
-	// my struct
+	// vector2 //
 	Direction dir;
 	dir.x = 0, dir.y = 0;
 	
-	// non-struct
-	int player_score = 0;
-	int base_score = 0;
+	// ui //
+	unsigned short player_score = 0;
+	unsigned short base_score = 0;
 	
-	unsigned int timer = 150;
-	unsigned int slapsed_time = 0;
+	unsigned short timer = 155;
+	unsigned short elapsed_time = 0;
 	
-	/* -----------
+	/* ---------
 	* FUNCTIONS
-	*///----------
+	*///--------
 	/* SCREEN */
-	void clear_screen()
+	void ClearScreen()
 	{
 		SDL_SetRenderDrawColor(rend, 0,0,0,255);  // r, g, b, alpha
 		SDL_RenderClear(rend);  // clear screen to selected color
 	}
 	
-	void spawnNewFood()
+	void SpawnNewFood()
 	{
 		// rand() -- range syntax -- % (max + 1 - min) + min;
 		food.x = rand() % 20*32;
 		food.y = rand() % 15*32;
 	}
 	
-	void runTimer()
+	void RunTimer()
 	{
-		slapsed_time += 1;
-		if (slapsed_time == 60)
+		elapsed_time += 1;
+		if (elapsed_time == 60)
 		{
 			timer -= 1;
-			slapsed_time = 0;
+			elapsed_time = 0;
 			printf("countdown: %d\n", timer);
 		}
 	}
 	
-	spawnNewFood();
+	SpawnNewFood();  // places the first food in the game;
 	
 	/* -------------
 	* MAIN LOOP
 	*///------------
 	bool running = true;
 	SDL_Event event;
+	
 	while (running)
 	{
 		/* EVENT POLL */
 		while (SDL_PollEvent(&event))
 		{
-			/* GET EVENT/INPUT */
+			// get event type //
 			switch (event.type)
 			{
-			// WINDOW EVENT:
+			// window event //
 			case SDL_QUIT:
 				running = false; // end main loop;
 				break;
-			// KEYBOARD INPUT:
+			// keyboard input //
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym)  // keysym == "key symbol"
 				{
-					case SDLK_ESCAPE:  // esc;
-						running = false; // end main loop (esc);
-						break;
-					case SDLK_UP:
-						dir.y = -1;
-						//printf("dir.y: %d\n", dir.y);
-						dir.x = 0;
-						break;
-					case SDLK_DOWN:
-						dir.y = 1;
-						//printf("dir.y: %d\n", dir.y);
-						dir.x = 0;
-						break;
-					case SDLK_LEFT:
-						dir.x = -1;
-						//printf("dir.x: %d\n", dir.x);
-						dir.y = 0;
-						break;
-					case SDLK_RIGHT:
-						dir.x = 1;
-						//printf("dir.x: %d\n", dir.x);
-						dir.y = 0;
-						break;
-					default:
-						break;
+				case SDLK_ESCAPE:
+					running = false; // end main loop (esc);
+					break;
+				case SDLK_UP:
+					dir.y = -1;  // -y
+					dir.x = 0;
+					break;
+				case SDLK_DOWN:
+					dir.y = 1;  // +y
+					dir.x = 0;
+					break;
+				case SDLK_LEFT:
+					dir.x = -1;  // -x
+					dir.y = 0;
+					break;
+				case SDLK_RIGHT:
+					dir.x = 1;  // +x
+					dir.y = 0;
+					break;
+				default:
+					break;
 				}
 				break;
 			default:
@@ -179,127 +172,125 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		/* DRAWING ON SCREEN */
+		/* DRAWING ON THE SCREEN */
 		{
-			// Background
-			clear_screen();
+			// background //
+			ClearScreen();
 
-			// FOOD
-			//.draw
+			// food //
 			{
-				food_blink += 1;
+				{ // blink func:
+					food_blink += 1;
+					
+					if (food_blink > 30 && food_blink < blink_speed)
+					{
+						SDL_SetRenderDrawColor(rend, 0,255,0,255);
+						SDL_RenderFillRect(rend, &food);
+					} 
+					else if (food_blink >= blink_speed) 
+					{
+						food_blink = 0;
+					}
+				}
 				
-				if (food_blink > 30 && food_blink < blink_speed){
-					SDL_SetRenderDrawColor(rend, 0,255,0,255);
-					SDL_RenderFillRect(rend, &food);
-				} /*else if (food_blink > 45 && food_blink < 60)
+				// collision:
+				if (player.x == food.x && player.y == food.y)
 				{
-					SDL_SetRenderDrawColor(rend, 0,255,0,255);
-					SDL_RenderFillRect(rend, &food);
-				}*/
-				else if (food_blink >= blink_speed) {
-					food_blink = 0;
+					SpawnNewFood();
+					player_score += 1;
+					printf("Score: %d\n", player_score);
 				}
 			}
-			
-			//SDL_SetRenderDrawColor(rend, 0,255,0,255);
-			//SDL_RenderFillRect(rend, &food);
-			
-			//.get collision
-			if (player.x == food.x && player.y == food.y)
-			{
-				spawnNewFood();
-				player_score += 1;
-				printf("score: %d\n", player_score);
-			}
 
-			// Player
-			SDL_SetRenderDrawColor(rend, 255,0,0,255);
-			SDL_RenderDrawRect(rend, &player);
-			
-			walk_delay += 1;
-			if (walk_delay >= 0 && walk_delay <= 1)
-			{
-				if (dir.x != 0)
+			/* PLAYER */
+			{ // draw rect
+				SDL_SetRenderDrawColor(rend, 255,0,0,255);
+				SDL_RenderDrawRect(rend, &player);
+				walk_delay += 1;
+				
+				// frame-update delay
+				if (walk_delay >= 0 && walk_delay <= 1)  // draw 1-frame;
 				{
-					//printf("dir.x is != 0.\n");
-					switch(dir.x)
+					if (dir.x != 0)  // check for horizontal axis;
 					{
-						case 1:
-							//printf("dir.x is 1\n");
+						switch(dir.x)
+						{
+						case 1:  // +x
 							player.x += player.w;
 							break;
-						case -1:
-							//printf("dir.x is -1\n");
+						case -1:  // -x
 							player.x -= player.w;
 							break;
 						default:
 							break; 
+						}
 					}
-				}
-				if (dir.y != 0)
-				{
-					//printf("dir.y is != 0.\n");
-					switch(dir.y)
+					if (dir.y != 0)  // check for vertical axis;
 					{
-						case 1:
-							//printf("dir.y is 1\n");
-							player.y += player.w;
+						switch(dir.y)
+						{
+						case 1:  // +y
+							player.y += player.h;
 							break;
-						case -1:
-							//printf("dir.y is -1\n");
-							player.y -= player.w;
+						case -1:  // -y
+							player.y -= player.h;
 							break;
 						default:
 							break;
+						}
 					}
+				} 
+				else if (walk_delay == speed)  // wait for 1s (60f) and reset;
+											// changing 'speed' reduces waiting time;
+				{
+					walk_delay = 0;
 				}
-			} else if (walk_delay == speed)
-			{
-				walk_delay = 0;
 			}
 
-			// increase player speed if add player_score;
-			if (base_score < player_score)
+			// data proccess //
+			// scoring
+			if (base_score < player_score)  // increase player speed if 'add player_score';
 			{
 				base_score += 1;
-				if (speed < 5)
+				
+				if (speed < 5)  // check speed level;
 				{
-					speed -= 2;
-				} else if (speed > 5 && speed != 1)
+					speed -= 3;
+				} 
+				else if (speed > 5 && speed != 1)  // check speed level and limit;
 				{
 					speed -= 1;
-					if (blink_speed >= 24)
+					
+					if (blink_speed >= 24)  // change food's blink speed;
 					{
 						blink_speed -= 1;
 					}
 				}
 			}
-
-			// UI
-			runTimer();
 			
-			// check win
-			if (player_score == 50)
+			RunTimer();  // load timer
+			
+			if (player_score == 50)  // check win;
 			{
 				running = false;
-				printf("\nYou win!\n\n");
-			} else if (timer == 0)
+				printf("\nGreat! You win!\n\n");
+			} 
+			else if (timer == 0)  // check loss;
 			{
 				running = false;
 				printf("\nSorry, you loose! :(\n\n");
 			}
 
-			// SCREEN UPDATE()
-			SDL_RenderPresent(rend);  // display the configured *render
-			SDL_Delay(1000/CLOCK_TICK);  // set target fps to 60;
+			/* SCREEN UPDATE */
+			SDL_RenderPresent(rend);  // display the *render;
+			SDL_Delay(1000/CLOCK_TICK);  // set target fps to CLOCK_TICK;
 		}
 	}
 	
-	/*-----
+	/*----
 	* END
-	*///---
-	printf("The program did exit successfully!\n");
+	*///--
 	SDL_Quit();
+	printf("The program ended successfully.\n");
 	return 0;
 }

@@ -1,11 +1,11 @@
 **Building**
 ============
-### Requires:
-##### *Windows*
-+ mingw32/msys2 with ```gcc build-essential toolchain```
+### Requirements
+##### *Windows:*
++ mingw32/msys2 with ```gcc build-essential toolchain cmake```.
 
-##### *Linux*
-+ sdl (see the [official repo.](https://github.com/libsdl-org/SDL))
+##### *Linux:*
++ SDL2 ([official repo.](https://github.com/libsdl-org/SDL)); common-build tools.
 
 ____________
 ### Compile:
